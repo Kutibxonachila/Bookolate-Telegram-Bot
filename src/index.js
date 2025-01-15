@@ -1,6 +1,7 @@
 import { Telegraf } from "telegraf";
 import startCommand from "./commands/start.js";
 import "dotenv/config";
+import helpCommand from "./commands/help.js";
 
 // Ensure BOT_TOKEN is defined in the .env file
 if (!process.env.BOT_TOKEN) {
@@ -15,6 +16,33 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // Start command handler
 bot.start(startCommand);
+bot.help(helpCommand);
+
+// Handle unknown commands
+bot.on("text", (ctx) => {
+  const messageText = ctx.message.text;
+
+  if (
+    !messageText.startsWith("/start") &&
+    !messageText.startsWith("/help") &&
+    !messageText.startsWith("/search") &&
+    !messageText.startsWith("/new") &&
+    !messageText.startsWith("/recommend") &&
+    !messageText.startsWith("/list")
+  ) {
+    const errorMessage = `
+❌ Noto'g'ri buyruq! Iltimos, quyidagi buyruqlardan birini yuboring:
+- /start: Xush kelibsiz
+- /help: Buyruqlar ro'yxati
+- /search <book_name>: Kitobni qidirish
+- /new: Yaqinda qo'shilgan kitoblar
+- /recommend: Kitob tavsiyasini oling
+- /list: Barcha kitoblar ro'yxati
+    `;
+
+    ctx.reply(errorMessage);
+  }
+});
 
 // Error handling
 bot.catch((err, ctx) => {
