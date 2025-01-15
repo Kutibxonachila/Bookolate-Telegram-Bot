@@ -1,6 +1,7 @@
 import { Telegraf } from "telegraf";
 import startCommand from "./commands/start.js";
 import "dotenv/config";
+import helpCommand from "./commands/help.js";
 
 // Ensure BOT_TOKEN is defined in the .env file
 if (!process.env.BOT_TOKEN) {
@@ -15,6 +16,7 @@ const bot = new Telegraf(process.env.BOT_TOKEN);
 
 // Start command handler
 bot.start(startCommand);
+bot.help(helpCommand);
 
 // Error handling
 bot.catch((err, ctx) => {
