@@ -39,6 +39,7 @@ const setLibraryUserId = async (ctx, next) => {
   }
 };
 
+// Command to list books
 const listCommand = async (ctx) => {
   try {
     console.log("Command '/list' triggered");
@@ -80,46 +81,57 @@ const listCommand = async (ctx) => {
   }
 };
 
-const borrowBookHandler = async (ctx) => {
+export const handleBorrowCallback = async (ctx, callbackQuery) => {
+  const callbackData = callbackQuery.data;
+
+  if (callbackData.startsWith("borrow_")) {
+    const bookId = callbackData.split("_")[1]; // Get book ID from the callbackData
+    await handleBorrowBook(ctx, callbackData); // Call the borrowing function
+  } else if (callbackData === "cancel_borrow") {
+    await ctx.reply("❌ Kitob olish bekor qilindi.");
+  }
+};
+
+const handleBorrowBook = async (ctx, callbackData) => {
   try {
-    const callbackData = ctx.callbackQuery.data;
-    console.log(`Callback triggered with data: ${callbackData}`);
+    const libraryUserId = ctx.session?.libraryUserId;
 
-    // Extract book ID from callback data
-    const bookId = callbackData.split("_")[1];
-
-    // Retrieve the library user ID from session
-    const userId = ctx.session.libraryUserId;
-
-    if (!userId) {
+    if (!libraryUserId) {
       await ctx.reply(
-        "❌ Foydalanuvchi ID o'rnatilmagan. Iltimos, avval /setid bilan kiriting."
+        "❌ Iltimos, avval /setid orqali foydalanuvchi ID-ni o'rnating."
       );
       return;
     }
 
-    // Send API request to borrow the book
-    const apiUrl =
-      "https://ishbazar-master-server.onrender.com/book/borrowing/borrow";
-    const payload = { userId, bookId };
+    const bookId = callbackData.split("_")[1]; // Extract the book ID from callbackData
 
-    console.log(`Sending POST request to: ${apiUrl} with payload:`, payload);
+    if (!bookId) {
+      await ctx.reply(
+        "❌ Noto'g'ri kitob identifikatori. Iltimos, qayta urinib ko'ring."
+      );
+      return;
+    }
+
+    // API URL for borrowing the book
+    const apiUrl =
+      "https://ishbazar-master-server.onrender.com/borrowing/borrow";
+    const payload = { userId: libraryUserId, bookId };
+
+    console.log(`Sending POST request to ${apiUrl} with payload:`, payload);
 
     const response = await axios.post(apiUrl, payload);
 
-    if (response.status === 200 && response.data.success) {
-      console.log(`Book with ID ${bookId} borrowed successfully.`);
-      await ctx.answerCbQuery("✅ Kitob muvaffaqiyatli olingan!");
+    // Check if the borrowing was successful
+    await callbackQuery.message.reply("Kitobni olishni xohlaysizmi?");
+    if (response.data.success) {
+      await ctx.reply("📚 Kitob muvaffaqiyatli olingan!");
     } else {
-      console.error("Failed to borrow book:", response.data.message);
-      await ctx.answerCbQuery("❌ Kitobni olishda xatolik yuz berdi.");
+      await ctx.reply(`❌ Xatolik: ${response.data.message}`);
     }
   } catch (error) {
     console.error("Error occurred while borrowing book:", error.message);
-    await ctx.answerCbQuery(
-      "⚠️ Xatolik yuz berdi. Keyinroq qayta urinib ko'ring."
-    );
+    await ctx.reply("⚠️ Kitobni olishda xatolik yuz berdi.");
   }
 };
 
-export { setLibraryUserId, listCommand, borrowBookHandler };
+export { setLibraryUserId, listCommand };
