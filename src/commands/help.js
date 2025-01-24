@@ -7,6 +7,8 @@ Mana mavjud buyruqlar:
 - /new: Yaqinda qo'shilgan kitoblar 📚
 - /recommend: Kitob tavsiyasini oling 🌟
 - /list : Barcha kitoblar ro'yxati 📖
+- /register : Ro'yxatdan o'tish ✍️
+- /login : Kirish 🔑
 `);
 };
 
