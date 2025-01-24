@@ -86,11 +86,22 @@ export const handleBorrowCallback = async (ctx, callbackQuery) => {
 
   if (callbackData.startsWith("borrow_")) {
     const bookId = callbackData.split("_")[1]; // Get book ID from the callbackData
+
+    // Check if the user is registered before borrowing
+    const libraryUserId = ctx.session?.libraryUserId;
+    if (!libraryUserId) {
+      await ctx.reply(
+        "❌ Iltimos, avval /setid orqali foydalanuvchi ID-ni o'rnating."
+      );
+      return;
+    }
+
     await handleBorrowBook(ctx, callbackData); // Call the borrowing function
   } else if (callbackData === "cancel_borrow") {
     await ctx.reply("❌ Kitob olish bekor qilindi.");
   }
 };
+
 
 const handleBorrowBook = async (ctx, callbackData) => {
   try {
